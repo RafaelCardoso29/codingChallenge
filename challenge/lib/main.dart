@@ -18,10 +18,9 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         home: SearchScreen(),
         theme: ThemeData(
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.white,
           primaryColor: Colors.white,
           fontFamily: 'Muli',
-          visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
       ),
     );

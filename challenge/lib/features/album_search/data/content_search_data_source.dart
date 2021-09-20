@@ -30,14 +30,11 @@ class ContentSearchRemoteDataSource implements ContentSearchDataSource {
 
   _convertContent(String type, var response) {
     if (type.toLowerCase() == "artist") {
-      var a = Response.fromJson(response.data).results.artistmatches.artist;
-      return a;
+      return Response.fromJson(response.data).results.artistmatches.artist;
     } else if (type.toLowerCase() == "album") {
-      var r = Response.fromJson(response.data).results.albummatches.album;
-      return r;
+      return Response.fromJson(response.data).results.albummatches.album;
     } else if (type.toLowerCase() == "track") {
-      var t = Response.fromJson(response.data).results.trackmatches.track;
-      return t;
+      return Response.fromJson(response.data).results.trackmatches.track;
     } else
       return List.empty();
   }

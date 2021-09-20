@@ -43,11 +43,10 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Column(
             children: [
               SizedBox(height: 40),
-              widgetTextField(),
+              _buildTextfieldAndSearch(),
               SizedBox(height: 40),
               _buildSearchByDropDown(),
               SizedBox(height: 20),
-              _buildTextResults(),
               SizedBox(height: 20),
               Divider(),
               _buildStates()
@@ -69,7 +68,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  widgetTextField() {
+  _buildTextfieldAndSearch() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -132,10 +131,81 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  _buildTextResults() {
-    return Row(
-      children: [],
+  _buildSearchByDropDown() {
+    return Padding(
+      padding: EdgeInsets.only(left: 20),
+      child: Row(
+        children: [
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+              child: DropdownButton<String>(
+                value: dropdownValue,
+                iconSize: 24,
+                elevation: 16,
+                style: const TextStyle(color: Colors.black),
+                underline: Container(
+                  height: 2,
+                  color: Colors.white,
+                ),
+                onChanged: (String newValue) {
+                  setState(() {
+                    dropdownValue = newValue;
+                    _searchBy = dropdownValue;
+                  });
+                },
+                items: <String>['Album', 'Artist', 'Track']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  _buildStates() {
+    return BlocConsumer<ContentSearchBloc, ContentSearchState>(
+      cubit: BlocProvider.of<ContentSearchBloc>(context),
+      buildWhen: (previous, current) {
+        return current is ContentSearchInitial ||
+            current is ContentSearchLoading ||
+            current is ContentSearchLoaded;
+      },
+      listenWhen: (previous, current) {
+        return current is ContentSearchError;
+      },
+      builder: (context, state) {
+        if (state is ContentSearchInitial || state is ContentSearchLoading) {
+          return CircularProgressIndicator();
+        } else if (state is ContentSearchLoaded) {
+          if (state.contentList != null && state.contentList.isNotEmpty) {
+            return _buildResultList(state.contentList, state.searchBy);
+          } else {
+            return _buildEmptyState();
+          }
+        }
+        return _buildEmptyState();
+      },
+      listener: (previous, current) async {
+        if (current is ContentSearchError) {
+          print(current.toString);
+        }
+      },
+    );
+  }
+
+  _buildEmptyState() {
+    return Container();
   }
 
   _buildResultList(List<dynamic> contentList, String searchBy) {
@@ -200,83 +270,6 @@ class _SearchScreenState extends State<SearchScreen> {
         ? BlocProvider.of<ContentSearchBloc>(context)
             .add(GetSearchResult(_textcontroller.text, _searchBy))
         : null;
-  }
-
-  _buildStates() {
-    return BlocConsumer<ContentSearchBloc, ContentSearchState>(
-      cubit: BlocProvider.of<ContentSearchBloc>(context),
-      buildWhen: (previous, current) {
-        return current is ContentSearchInitial ||
-            current is ContentSearchLoading ||
-            current is ContentSearchLoaded;
-      },
-      listenWhen: (previous, current) {
-        return current is ContentSearchError;
-      },
-      builder: (context, state) {
-        if (state is ContentSearchInitial || state is ContentSearchLoading) {
-          return CircularProgressIndicator();
-        } else if (state is ContentSearchLoaded) {
-          if (state.contentList != null && state.contentList.isNotEmpty) {
-            return _buildResultList(state.contentList, state.searchBy);
-          } else {
-            return _buildEmptyState();
-          }
-        }
-        return Container();
-      },
-      listener: (previous, current) async {
-        if (current is ContentSearchError) {
-          print(current.toString);
-        }
-      },
-    );
-  }
-
-  _buildEmptyState() {
-    return Container();
-  }
-
-  _buildSearchByDropDown() {
-    return Padding(
-      padding: EdgeInsets.only(left: 20),
-      child: Row(
-        children: [
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-              child: DropdownButton<String>(
-                value: dropdownValue,
-                iconSize: 24,
-                elevation: 16,
-                style: const TextStyle(color: Colors.black),
-                underline: Container(
-                  height: 2,
-                  color: Colors.white,
-                ),
-                onChanged: (String newValue) {
-                  setState(() {
-                    dropdownValue = newValue;
-                    _searchBy = dropdownValue;
-                  });
-                },
-                items: <String>['Album', 'Artist', 'Track']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   _checkContentType(List<dynamic> list) {
